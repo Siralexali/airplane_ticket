@@ -47,6 +47,9 @@ def edit_date(inp):
     inp = inp.split('-')
     return (str(jdatetime.date(day=int(inp[2]), month=int(inp[1]), year=int(inp[0])).togregorian()))
 
+def convert_time(date):
+    date = str(date).split('-')
+    return str(jdatetime.date.fromgregorian(day=int(date[2]), month=int(date[1]), year=int(date[0])))
 
 def enter_origin_and_distination():
     origin = input("please enter your origin city.\n")
@@ -61,7 +64,7 @@ def start():
 
 def enter_time():
     date_of_flight = input("please enter date.     like this ----> year-month-day\n").split('-')
-    return (jdatetime.date(day=int(date_of_flight[2]), month=int(date_of_flight[1]),
+    return str(jdatetime.date(day=int(date_of_flight[2]), month=int(date_of_flight[1]),
                            year=int(date_of_flight[0])).togregorian())
 
 
@@ -69,17 +72,40 @@ def manual():
     org_des = enter_origin_and_distination()
     org_des = city(org_des[0],org_des[1])
     flight_time = enter_time()
-    out = city(org_des[0], org_des[1])
     count_of_pass = count_of_passengers()
     data = flight_list(count_of_pass,org_des,flight_time)
     can_select = search_in_flights(data)
     if can_select != []:
         choose_flight(can_select,count_of_pass)
+        print("your flight date is " + flight_time)
+    else:
+        list_of_days = search_day(org_des,count_of_pass,flight_time)
+        counter = 1
+        for time in list_of_days:
+            print(str(counter) + '- ' + convert_time(time))
+            counter += 1
+
+        select = input("There are no tickets available on this day\nyou can choose one of this time and If you don't want any, enter 0\n")
+        if select != '0':
+            count_of_pass = count_of_passengers()
+            data = flight_list(count_of_pass, org_des, list_of_days[int(select)-1])
+            can_select = search_in_flights(data)
+            choose_flight(can_select, count_of_pass)
+            print("your flight date is " + str(convert_time(list_of_days[int(select)-1])))
 
 
 
 def auto():
     org_des = enter_origin_and_distination()
+    org_des = city(org_des[0], org_des[1])
+    today_date = str(date.today())
+    count_of_pass = count_of_passengers()
+    flight_time = search_day(org_des,count_of_pass,today_date)
+    if flight_time != []:
+        data = flight_list(count_of_pass, org_des, flight_time[0])
+        can_select = search_in_flights(data)
+        choose_flight(can_select,count_of_pass)
+        print("your flight date is " + str(convert_time(flight_time[0])))
 
 def count_of_passengers():
     return input("please enter count of passengers   like this ----> adult count-child count-infant count\n").split("-")
@@ -191,5 +217,43 @@ def bill(passengers,PhoneNumber,need_bill):
     final = response.json()
     print('https://payment.mrbilit.ir/api/billpayment/' + final['BillCode'] + '?payFromCredit=false&access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJidXMiOiI0ZiIsInRybiI6IjE3Iiwic3JjIjoiMiJ9.vvpr9fgASvk7B7I4KQKCz-SaCmoErab_p3csIvULG1w')
 
+
+def search_day(org_des,count_of_pass,start_time):
+    url = 'https://flight.atighgasht.com/api/Flights/MinPrices'
+    headers = {
+        'content-type': 'application/json-patch+json'
+    }
+
+    tmp = start_time.split('-')
+    if int(tmp[1]) + 1 > 12:
+        tmp[0] = str(int(tmp)+1)
+        tmp[1] = '01'
+    else:
+        tmp[1] = str(int(tmp[1])+1)
+
+    final_time = ''
+    for i in range(3):
+        if i < 2:
+            final_time = final_time + tmp[i] + '-'
+        else:
+            final_time = final_time + tmp[i]
+
+    data = {
+        "AdultCount": count_of_pass[0],
+        "ChildCount":  count_of_pass[1],
+        "InfantCount":  count_of_pass[2],
+        "EndDate": final_time + "T22:29:59.999Z",
+        "Destination": org_des[1],
+        "StartDate": start_time + "T22:29:59.999Z",
+        "Origin": org_des[0]
+    }
+
+    response = requests.post(url, headers=headers, json=data)
+    days = response.json()
+    list_of_days = []
+    for day in days:
+        if day['TotalFare'] != None:
+            list_of_days.append(str(day['Date'])[:10])
+    return list_of_days
 
 start()
