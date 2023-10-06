@@ -56,7 +56,7 @@ def enter_origin_and_distination():
 
 def start():
     manual() if input(
-        "1- the earliest ticket(buy automaticaly)\n2- buy manual ticket\nplease choose your way\n") == '2' else auto()
+        "1- the earliest ticket(buy automatically)\n2- buy manual ticket\nplease choose your way\n") == '2' else auto()
 
 
 def enter_time():
