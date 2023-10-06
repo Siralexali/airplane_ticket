@@ -56,7 +56,7 @@ def enter_origin_and_distination():
 
 def start():
     manual() if input(
-        "1- the earliest ticket(buy automaticaly)\n2- buy manual ticket\npealese choose your way") == '2' else auto()
+        "1- the earliest ticket(buy automaticaly)\n2- buy manual ticket\nplease choose your way\n") == '2' else auto()
 
 
 def enter_time():
@@ -67,6 +67,7 @@ def enter_time():
 
 def manual():
     org_des = enter_origin_and_distination()
+    org_des = city(org_des[0],org_des[1])
     flight_time = enter_time()
     out = city(org_des[0], org_des[1])
     count_of_pass = count_of_passengers()
@@ -199,4 +200,3 @@ start()
 
 
 
- 
